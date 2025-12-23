@@ -27,10 +27,28 @@ jobs:
     needs: code-quality # Dependency
     steps:
       - uses: actions/checkout@v4
-      - name: Run Snyk Security Scan
-        uses: snyk/actions/node@master
+      - name: Ensure SNYK_TOKEN secret exists
+        run: |
+          if [ -z "$SNYK_TOKEN" ]; then
+            echo "SNYK_TOKEN secret is not set. Add it in repository Settings → Secrets → Actions."
+            exit 1
+          fi
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@v3
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      
+      # STEP 2: The Reporter (Sends the results to your Snyk Dashboard)
+      # This runs only if the Test passes (or you can use 'if: always()')
+      - name: 📊 Snyk Monitor (Send Report)
+        uses: snyk/actions/node@masters
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor   
 
   # JOB 3: Final Build and Push (Runs only if Security passes)
   docker-release:
