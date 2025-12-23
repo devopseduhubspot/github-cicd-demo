@@ -2,13 +2,44 @@ name: Main Branch CI/CD
 
 on:
   push:
-    branches: [ main ] # Triggered when PR is merged into main
+    branches: [ main ]
 
 jobs:
-  release:
+  # JOB 1: Ensuring code is stable before building
+  code-quality:
+    name: 🧪 Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install & Test
+        run: |
+          npm ci
+          npm test
+
+  # JOB 2: Scanning for vulnerabilities (Runs only if Quality passes)
+  security-scan:
+    name: 🛡️ Security Scan
+    runs-on: ubuntu-latest
+    needs: code-quality # Dependency
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # JOB 3: Final Build and Push (Runs only if Security passes)
+  docker-release:
+    name: 🚀 Production Release
+    runs-on: ubuntu-latest
+    needs: security-scan # Dependency
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -19,12 +50,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Production Image
+      - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          # Tags the image with 'latest' and the specific Git Commit Hash
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/my-app:latest
             ${{ secrets.DOCKER_USERNAME }}/my-app:${{ github.sha }}
