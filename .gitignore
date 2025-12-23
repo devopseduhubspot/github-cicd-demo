@@ -1,0 +1,22 @@
+//genertae all node related gitignore files
+node_modules/
+npm-debug.log   
+yarn-error.log
+lerna-debug.log*
+.pnpm-debug.log*
+.env
+.env.test
+.env.production
+.env.local
+.env.*.local
+.DS_Store
+.vscode/
+.idea/
+dist/
+build/
+.cache/
+.next/
+.out/
+coverage/
+*.tsbuildinfo
+*.log
