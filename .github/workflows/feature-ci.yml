@@ -1,0 +1,27 @@
+name: Feature Branch CI
+
+on:
+  push:
+    branches-ignore:
+      - main  # Runs on all branches EXCEPT main
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Linter Check
+        run: npm run lint # Assumes you have a lint script
+
+      - name: Run Unit Tests
+        run: npm test
