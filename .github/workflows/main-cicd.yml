@@ -44,7 +44,7 @@ jobs:
       # STEP 2: The Reporter (Sends the results to your Snyk Dashboard)
       # This runs only if the Test passes (or you can use 'if: always()')
       - name: 📊 Snyk Monitor (Send Report)
-        uses: snyk/actions/node@masters
+        uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
